@@ -9,11 +9,14 @@ import display.GamePanel;
 
 public class Ground extends GameEntity {
 
+
+
     public Ground(int x, int y, BufferedImage image, ArrayList<GamePanel> panels) {
         super(x, y, image, panels);
         layers.add(0);
         objectID = GROUND;
         affectedByGravity = false;
+        castsShadow = false;
     }
 
     public Ground(int x, int y, BufferedImage image, GamePanel panel) {
@@ -21,12 +24,17 @@ public class Ground extends GameEntity {
         layers.add(0);
         objectID = GROUND;
         affectedByGravity = false;
+        castsShadow = false;
 
     }
 
     @Override
     public void setClassResources() {
 
+    }
+
+    public int getHorizonY(double x){
+        return (int)y;
     }
 
     

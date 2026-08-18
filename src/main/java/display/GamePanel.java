@@ -7,6 +7,7 @@ import debug.DebugValue;
 import debug.Debugger;
 import debug.Logger;
 import entity.GameEntity;
+import entity.Ground;
 import savor.Game;
 import util.GlobalTick;
 import util.Imaging;
@@ -37,6 +38,10 @@ public abstract class GamePanel implements KeyListener {
 
     private ArrayList<GameEntity> entities = new ArrayList<>();
     public static final int LAYERS = 5;
+
+    public static GamePanel getCurrentPanel(){
+        return currentPanel;
+    }
 
     public void addEntity(GameEntity entity) {
         entities.add(entity);
@@ -71,53 +76,29 @@ public abstract class GamePanel implements KeyListener {
     public static Panel getMainPanel() {
         return mainPanel;
     }
+    public int getHorizonLevel(int x){
+        int maxy = 999999;
+        for(GameEntity ge : entities){
+            if(ge instanceof Ground){
+                if(((Ground)ge).getHorizonY(x)<maxy){
+                    maxy = ((Ground)ge).getHorizonY(x);
+                }
+            }
+        }
+        return maxy;
+    }
 
     private static GamePanel currentPanel;
 
     private static int curDebugger = 0;
 
+
     public GamePanel() {
         myIndex = panels.size();
         panels.add(this);
 
-        addReleasedKeyAction(KeyEvent.VK_Y, () -> {
-            for (GameEntity e : entities) {
-                e.getDebugger().active = false;
+        addDebugKeys();
 
-            }
-            entities.get(curDebugger).getDebugger().active = true;
-
-            ControlPanel.debugMode = !ControlPanel.debugMode;
-        });
-
-        addReleasedKeyAction(KeyEvent.VK_OPEN_BRACKET, () -> {
-            curDebugger--;
-            for (GameEntity e : entities) {
-                e.getDebugger().active = false;
-
-            }
-            if (0 > curDebugger) {
-                curDebugger = entities.size() - 1;
-
-                // curDebugger--;
-            }
-            entities.get(curDebugger).getDebugger().active = true;
-
-        });
-        addReleasedKeyAction(KeyEvent.VK_CLOSE_BRACKET, () -> {
-            curDebugger++;
-
-            for (GameEntity e : entities) {
-                e.getDebugger().active = false;
-
-            }
-            if (entities.size() <= curDebugger) {
-                curDebugger = 0;
-
-            }
-            entities.get(curDebugger).getDebugger().active = true;
-
-        });
     }
 
     public void paintComponent(Graphics g) {
@@ -385,4 +366,76 @@ public abstract class GamePanel implements KeyListener {
 
     }
 
+
+    
+
+
+
+
+    //--------------DEBUG KEYS--------------//
+    public void addDebugKeys(){
+
+
+        //TOGGLE DEBUG
+
+        ArrayList<Integer> debugModeKeys = new ArrayList<>();
+        debugModeKeys.add(KeyEvent.VK_CONTROL);
+        debugModeKeys.add(KeyEvent.VK_F2);
+
+        KeyAction debugAction = new KeyAction(debugModeKeys,() -> {
+            for (GameEntity e : entities) {
+                e.getDebugger().active = false;
+
+            }
+            entities.get(curDebugger).getDebugger().active = true;
+
+            ControlPanel.debugMode = !ControlPanel.debugMode;
+        });
+        addCombinedPressedKeyAction(debugAction);
+
+
+
+        //EXIT
+        ArrayList<Integer> exitModeKeys = new ArrayList<>();
+        exitModeKeys.add(KeyEvent.VK_CONTROL);
+        exitModeKeys.add(KeyEvent.VK_F1);
+
+        KeyAction exitAction = new KeyAction(exitModeKeys,() -> {
+            System.exit(0);
+        });
+        addCombinedPressedKeyAction(exitAction);
+
+
+
+        //SWITCH DEBUG OBJECT
+
+        addReleasedKeyAction(KeyEvent.VK_OPEN_BRACKET, () -> {
+            curDebugger--;
+            for (GameEntity e : entities) {
+                e.getDebugger().active = false;
+
+            }
+            if (0 > curDebugger) {
+                curDebugger = entities.size() - 1;
+
+                // curDebugger--;
+            }
+            entities.get(curDebugger).getDebugger().active = true;
+
+        });
+        addReleasedKeyAction(KeyEvent.VK_CLOSE_BRACKET, () -> {
+            curDebugger++;
+
+            for (GameEntity e : entities) {
+                e.getDebugger().active = false;
+
+            }
+            if (entities.size() <= curDebugger) {
+                curDebugger = 0;
+
+            }
+            entities.get(curDebugger).getDebugger().active = true;
+
+        });
+    }
 }

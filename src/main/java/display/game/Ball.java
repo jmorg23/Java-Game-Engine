@@ -45,6 +45,7 @@ public class Ball extends GameEntity {
 
     @Override
     public void update() {
+        
     }
     
 }

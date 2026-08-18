@@ -9,28 +9,36 @@ import debug.DebugValue;
 
 import display.GamePanel;
 import display.KeyAction;
-import entity.GameEntity;
 
-public class Player extends GameEntity {
+import entity.MultiAnimatedEntity;
 
-    private int jumpSpeed = -5;
-    private int speed = 15;
+public class Player extends MultiAnimatedEntity {
 
-    public Player(int x, int y, BufferedImage image, ArrayList<GamePanel> panels) {
-        super(x, y, image, panels);
+    private double jumpSpeed = -8;
+    private double speed = 15;
+
+    public Player(int x, int y, ArrayList<GamePanel> panels,
+            int frameW, int frameH, ArrayList<BufferedImage> images) {
+
+        super(x, y, panels, frameW, frameH, images);
+
         setScale(0.5, 0.5);
         masks.add(GROUND);
 
     }
 
-    public Player(int x, int y, BufferedImage image, GamePanel panel) {
-        super(x, y, image, panel);
+    public Player(int x, int y, GamePanel panel, int frameW,
+            int frameH, ArrayList<BufferedImage> images) {
+        super(x, y, panel, frameW, frameH, images);
         setScale(0.5, 0.5);
 
         masks.add(GROUND);
-        panel.addExclusivePressedKeyAction(KeyEvent.VK_SPACE, ()->{
-            if(grounded)
-            velocityY=jumpSpeed;
+        panel.addExclusivePressedKeyAction(KeyEvent.VK_SPACE, () -> {
+            if (grounded)
+                velocityY = jumpSpeed;
+
+            changeAnimation(2);
+
         });
         ArrayList<Integer> keysForLeft = new ArrayList<>();
         keysForLeft.add(KeyEvent.VK_LEFT);
@@ -44,12 +52,28 @@ public class Player extends GameEntity {
         keysForRightKick.add(KeyEvent.VK_D);
         keysForRightKick.add(KeyEvent.VK_K);
 
-    
-        panel.addPressedKeyAction(new KeyAction(keysForLeft, ()->{this.x-=speed;}));
-        panel.addPressedKeyAction(new KeyAction(keysForRight, ()->{this.x+=speed;}));
-        panel.addCombinedPressedKeyAction(new KeyAction(keysForRightKick, ()->{rotate(5);}));
+        panel.addPressedKeyAction(new KeyAction(keysForLeft, () -> {
+                this.velocityX = -speed;
+            
 
-        
+            if (grounded && getCurrentAnimaiton() != 1)
+                changeAnimation(1);
+        }));
+        panel.addPressedKeyAction(new KeyAction(keysForRight, () -> {
+                this.velocityX = speed;
+            
+
+            if (grounded && getCurrentAnimaiton() != 1)
+                changeAnimation(1);
+
+        }));
+
+
+        panel.addCombinedPressedKeyAction(new KeyAction(keysForRightKick,
+                () -> {
+                    rotate(5);
+                }));
+
     }
 
     @Override
@@ -62,11 +86,10 @@ public class Player extends GameEntity {
 
     }
 
-    
     @Override
     public ArrayList<DebugValue> debugValues() {
         ArrayList<DebugValue> vals = new ArrayList<>();
-        vals.add(new DebugValue("Grounded: ", grounded+""));
+        vals.add(new DebugValue("Grounded: ", grounded + ""));
 
         return vals;
     }
@@ -78,6 +101,12 @@ public class Player extends GameEntity {
 
     @Override
     public void update() {
+        if (grounded && velocityX == 0 && getCurrentAnimaiton() != 0) {
+            changeAnimation(0);
+        }
+        // else if(grounded && velocityX!=0&& getCurrentAnimaiton() != 0){
+
+        // }
 
     }
 

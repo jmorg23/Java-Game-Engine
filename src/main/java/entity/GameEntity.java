@@ -1,5 +1,7 @@
 package entity;
 
+import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
@@ -28,9 +30,11 @@ public abstract class GameEntity implements HasDebug {
 
     }
 
-    protected BufferedImage image;
+    protected BufferedImage image, drawImage, shadowImage, drawShadowImage;
     protected int width, height;
     protected AffineTransform transform = new AffineTransform();
+    protected AffineTransform shadowtransform = new AffineTransform();
+
     protected Rectangle bounds;
     protected boolean affectedByGravity = true;
     protected double velocityX = 0;
@@ -49,6 +53,8 @@ public abstract class GameEntity implements HasDebug {
     private double accelerationX, accelerationY;
     private double angularVelocity = 0;
     protected boolean circular = false;
+
+    protected boolean castsShadow = true;
 
     protected Debugger debugger = new Debugger();
 
@@ -119,10 +125,9 @@ public abstract class GameEntity implements HasDebug {
 
         // ArrayList<DebugValue> debugValues = debugValues();
         // if (debugValues != null) {
-        //     // .addAll(debugValues());
+        // // .addAll(debugValues());
         // }
 
-        
     }
 
     public GameEntity(int x, int y, BufferedImage image, GamePanel panel) {
@@ -130,8 +135,26 @@ public abstract class GameEntity implements HasDebug {
         this.x = x;
         this.y = y;
         this.image = image;
+        drawImage = image;
+
         this.width = image.getWidth();
         this.height = image.getHeight();
+        if (castsShadow) {
+            shadowImage = new BufferedImage(
+                    image.getWidth(),
+                    image.getHeight(),
+                    BufferedImage.TYPE_INT_ARGB);
+
+            Graphics2D sg = shadowImage.createGraphics();
+            sg.drawImage(image, 0, 0, null);
+            sg.setComposite(AlphaComposite.SrcIn);
+            sg.setColor(Color.BLACK);
+            sg.fillRect(0, 0, image.getWidth(), image.getHeight());
+            sg.dispose();
+            drawShadowImage = shadowImage;
+
+        }
+
         bounds = new Rectangle(x, y, (int) (width * scalex), (int) (height * scaley));
         panel.addEntity(this);
     }
@@ -141,9 +164,28 @@ public abstract class GameEntity implements HasDebug {
         this.x = x;
         this.y = y;
         this.image = image;
+        drawImage = image;
+
         this.width = image.getWidth();
         this.height = image.getHeight();
         bounds = new Rectangle(x, y, (int) (width * scalex), (int) (height * scaley));
+
+        if (castsShadow) {
+            shadowImage = new BufferedImage(
+                    image.getWidth(),
+                    image.getHeight(),
+                    BufferedImage.TYPE_INT_ARGB);
+
+            Graphics2D sg = shadowImage.createGraphics();
+            sg.drawImage(image, 0, 0, null);
+            sg.setComposite(AlphaComposite.SrcIn);
+            sg.setColor(Color.BLACK);
+            sg.fillRect(0, 0, image.getWidth(), image.getHeight());
+            sg.dispose();
+            drawShadowImage = shadowImage;
+
+        }
+
         for (GamePanel p : panels) {
             p.addEntity(this);
         }
@@ -154,7 +196,7 @@ public abstract class GameEntity implements HasDebug {
     public void updateEntity() {
 
         if (ControlPanel.debugMode) {
-           getDebugValues();
+            getDebugValues();
         }
         if (affectedByGravity) {
             velocityY = velocityY + ControlPanel.GRAVITY_EFFECT;
@@ -186,6 +228,20 @@ public abstract class GameEntity implements HasDebug {
         transform.translate(-bounds.width / 2, -bounds.height / 2);
         transform.scale(scalex, scaley);
 
+        if (castsShadow) {
+            int hy = GamePanel.getCurrentPanel().getHorizonLevel((int) x);
+
+            shadowtransform.setToTranslation(x, hy + bounds.height);
+
+            shadowtransform.translate(0, hy - (y + bounds.height));
+
+            // shadowtransform.translate(bounds.width / 2, bounds.height / 2);
+            // shadowtransform.rotate(rotation + Math.PI);
+            // shadowtransform.translate(-bounds.width / 2, -bounds.height / 2);
+
+            shadowtransform.scale(scalex, -scaley);
+        }
+
         update();
 
     }
@@ -194,8 +250,12 @@ public abstract class GameEntity implements HasDebug {
         if (!visible) {
             return;
         }
-        if (image != null) {
-            g2.drawImage(image, transform, null);
+        if (drawImage != null) {
+            g2.drawImage(drawImage, transform, null);
+            if (castsShadow) {
+                g2.drawImage(drawShadowImage, shadowtransform, null);
+
+            }
         } else {
             g2.fill(bounds);
         }

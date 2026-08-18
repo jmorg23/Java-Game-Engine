@@ -14,7 +14,7 @@ import util.button.SimpleButton;
 public class ControlPanel extends GamePanel {
 
     public static final int FRAME_W = 1000, FRAME_H = 1000;
-    public static final int FPS = 60;
+    public static final int FPS = 30;
     private static final double GRAVITY = 9.8;
     public static final double GRAVITY_EFFECT = GRAVITY / FPS;
 

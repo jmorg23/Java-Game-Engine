@@ -2,12 +2,12 @@ package entity;
 
 import java.awt.Graphics2D;
 
-public class JCircle extends JHitbox {
+public class JCircle extends Hitbox {
 
     public double radius;
 
     @Override
-    public boolean Collides(JHitbox hb) {
+    public boolean collides(Hitbox hb) {
 
         if (hb instanceof JCircle) {
             double dist = Math.sqrt(Math.pow(x - hb.x, 2) + Math.pow(y - hb.y, 2));
@@ -26,11 +26,9 @@ public class JCircle extends JHitbox {
         return false;
     }
 
-
-
     @Override
     public void draw(Graphics2D g2) {
-        g2.drawOval((int)(x - radius), (int)(y - radius), (int)(2 * radius), (int)(2 * radius));
+        g2.drawOval((int) (x - radius), (int) (y - radius), (int) (2 * radius), (int) (2 * radius));
     }
 
 }
